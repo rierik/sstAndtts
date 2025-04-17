@@ -142,8 +142,6 @@ const clearRecognizedText = () => {
   recognizedText.value = '';
 };
 
-//
-
 const category = ref('햄버거');
 const categories = ['햄버거', '사이드메뉴'];
 const categoryLabels = {
@@ -161,9 +159,9 @@ const addToCart = (item) => {
     // item이 객체일 경우
     const exists = cart.value.find((i) => i.name === item.name);
     if (exists) {
-      exists.qty++;
+      exists.quantity++;
     } else {
-      cart.value.push({ ...item, qty: 1 });
+      cart.value.push({ ...item, quantity: 1 });
     }
   }
 };
@@ -173,7 +171,7 @@ const clearCart = () => {
 };
 
 const totalPrice = computed(() => {
-  return cart.value.reduce((sum, item) => sum + item.price * item.qty, 0);
+  return cart.value.reduce((sum, item) => sum + item.price * item.quantity, 0);
 });
 
 const sendVoiceOrder = () => {
@@ -238,12 +236,12 @@ const answerOrder = () => {
     </div>
 
     <!-- Bottom wide control area -->
-    <div class="fixed bottom-40 left-0 w-full bg-white border-t border-gray-300 shadow-inner z-50 px-10 py-6">
+    <div class="fixed bottom-30 left-0 w-full bg-white border-t border-gray-300 shadow-inner z-50 px-10 py-6">
       <div class="max-w-screen-xl mx-auto flex flex-col">
         <!-- Top: Order summary text -->
         <div class="flex justify-between items-center mb-3">
           <h2 class="text-base font-semibold">총주문내역</h2>
-          <span class="text-lg font-bold">{{ cart.length }}개 / {{ totalPrice.toLocaleString() }}원</span>
+          <span class="text-lg font-bold"> {{ cart.reduce((sum, item) => sum + item.quantity, 0) }}개 / {{ totalPrice.toLocaleString() }}원</span>
         </div>
 
         <!-- Middle: Order item list -->
@@ -271,7 +269,7 @@ const answerOrder = () => {
     </div>
 
     <!-- 음성 -->
-    <div class="fixed bottom-12 left-0 w-full h-30 bg-white border-t border-gray-300 shadow-inner z-50 px-10 py-6">
+    <div class="fixed bottom-0 left-0 w-full h-30 bg-white border-t border-gray-300 shadow-inner z-50 px-10 py-6">
       <div class="bg-white max-w-screen-xl m-0 mx-auto text-center flex flex-col justify-center items-center gap-4">
         <div
           :class="{ 'grid-cols-[32px_auto_32px]': recognizedText, 'grid-cols-[auto_42px] ': recognizedText.length == 0 }"
@@ -288,7 +286,7 @@ const answerOrder = () => {
           </button>
           <div v-if="recognizedText">
             <div v-if="isLoading" class="flex items-center justify-center">
-              <div class="w-8 h-8 border-4 border-gray-500 border-t-transparent rounded-full animate-spin [animation-duration:2s]"></div>
+              <div class="w-6 h-6 border-4 border-gray-500 border-t-transparent rounded-full animate-spin [animation-duration:2s]"></div>
             </div>
             <p v-else>{{ recognizedText }}</p>
           </div>

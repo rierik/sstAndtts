@@ -27,8 +27,6 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, watch, ref } from 'vue';
-
 const props = defineProps({
   message: String,
   visible: Boolean,
