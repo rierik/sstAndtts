@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { fetchMenu, setOrder } from './api';
+import ResPopup from './components/ResPopup.vue';
 
 const isSpeeck = ref(false);
 const recognizedText = ref('햄버거 하나 주세요.');
@@ -11,6 +12,8 @@ const recognitionRef = ref(null); // recognition 인스턴스를 저장할 ref
 const menu = ref([]);
 const orderAnswer = ref(''); // 음성 인식 결과를 저장할 ref
 const isLoading = ref(false);
+
+const popupVisible = ref(false);
 
 onMounted(() => {
   console.log(import.meta.env.VITE_BASE_URL);
@@ -181,6 +184,7 @@ const sendVoiceOrder = () => {
     recognizedText.value = '';
     clearRecognizedText();
     console.log(answerOrder());
+    popupVisible.value = true;
   });
 };
 
@@ -267,8 +271,8 @@ const answerOrder = () => {
     </div>
 
     <!-- 음성 -->
-    <div class="fixed bottom-30 left-0 w-full h-8 bg-white border-t border-gray-300 shadow-inner z-50 px-10 py-6">
-      <div class="max-w-screen-xl m-0 mx-auto text-center flex flex-col justify-center items-center gap-4 p-4">
+    <div class="fixed bottom-12 left-0 w-full h-30 bg-white border-t border-gray-300 shadow-inner z-50 px-10 py-6">
+      <div class="bg-white max-w-screen-xl m-0 mx-auto text-center flex flex-col justify-center items-center gap-4">
         <div
           :class="{ 'grid-cols-[32px_auto_32px]': recognizedText, 'grid-cols-[auto_42px] ': recognizedText.length == 0 }"
           class="w-full grid gap-2 items-center p-2 rounded-xl border-gray-100 border-2 shadow-sm"
@@ -330,6 +334,8 @@ const answerOrder = () => {
       </div>
     </div>
   </div>
+
+  <ResPopup :message="orderAnswer" v-model:visible="popupVisible" />
 </template>
 
 <style scoped>
