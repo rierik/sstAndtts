@@ -1,11 +1,23 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { fetchMenu } from './api';
 
 const isSpeeck = ref(false);
 const recognizedText = ref('햄버거 하나 주세요.');
 const permissionDenied = ref(false);
 const permissionRequested = ref(false);
 const recognitionRef = ref(null); // recognition 인스턴스를 저장할 ref
+
+const menu = ref([]);
+
+onMounted(() => {
+  console.log(import.meta.env.VITE_BASE_URL);
+
+  fetchMenu().then((res) => {
+    console.log('메뉴:', res);
+    menu.value = res.data;
+  });
+});
 
 const startRecognition = async () => {
   const isPermissionGranted = await requestMicrophonePermission();
@@ -84,29 +96,11 @@ const clearRecognizedText = () => {
 
 //
 
-const category = ref('burger');
-const categories = ['burger', 'side', 'drink'];
+const category = ref('햄버거');
+const categories = ['햄버거', '사이드메뉴'];
 const categoryLabels = {
-  burger: 'BURGERS & MEALS',
-  side: 'SNACKS & SIDES',
-  drink: 'BEVERAGES',
-};
-
-const menu = {
-  burger: [
-    { name: '크리스피 오리엔탈 치킨버거', price: 5200 },
-    { name: '빅맥', price: 4400 },
-    { name: '1955 버거', price: 5400 },
-  ],
-  side: [
-    { name: '와플 후라이', price: 2500 },
-    { name: '스트링 치즈', price: 1600 },
-  ],
-  drink: [
-    { name: '제주 감귤 스무디', price: 2500 },
-    { name: '아이스 카페라떼', price: 2400 },
-    { name: '리세스 맥플러리', price: 2800 },
-  ],
+  햄버거: 'BURGERS & MEALS',
+  사이드메뉴: 'SNACKS & SIDES',
 };
 
 const cart = ref([]);
@@ -118,6 +112,10 @@ const addToCart = (item) => {
   } else {
     cart.value.push({ ...item, qty: 1 });
   }
+};
+
+const clearCart = () => {
+  cart.value = [];
 };
 
 const totalPrice = computed(() => {
@@ -155,11 +153,11 @@ const totalPrice = computed(() => {
         <h1 class="text-2xl font-extrabold text-gray-800 mb-4">SPECIALS</h1>
         <div class="grid grid-cols-2 gap-6">
           <div
-            v-for="item in menu[category]"
+            v-for="item in menu.filter((i) => i.category === category)"
             :key="item.name"
             class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition cursor-pointer flex flex-col items-center text-center"
           >
-            <img src="https://source.unsplash.com/100x100/?burger" alt="{{ item.name }}" class="mb-2 w-24 h-24 object-cover rounded-full" />
+            <img :src="'http://192.168.100.47/' + item.photo" :alt="item.name" class="mb-2 w-24 object-cover" />
             <h2 class="text-base font-semibold">{{ item.name }}</h2>
             <p class="text-sm text-gray-500 mb-1">₩{{ item.price.toLocaleString() }}</p>
             <button @click.stop="addToCart(item)" class="bg-green-600 text-white text-sm px-4 py-1 rounded-full hover:bg-green-700 mt-1">선택</button>
@@ -194,7 +192,7 @@ const totalPrice = computed(() => {
             <button class="text-gray-600 text-sm hover:underline">직원호출</button>
           </div>
           <div class="flex gap-4">
-            <button class="bg-gray-200 text-gray-800 px-10 py-3 rounded-lg text-base font-semibold hover:bg-gray-300">취소하기</button>
+            <button class="bg-gray-200 text-gray-800 px-10 py-3 rounded-lg text-base font-semibold hover:bg-gray-300" @click="clearCart">취소하기</button>
             <button class="bg-pink-500 text-white px-10 py-3 rounded-lg text-base font-semibold hover:bg-pink-600">결제하기</button>
           </div>
         </div>
