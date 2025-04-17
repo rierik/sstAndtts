@@ -34,6 +34,6 @@ const api = axios.create({
 // );
 
 export const fetchMenu = () => api.get('/product');
-export const setOrder = (id) => api.get(`/order`);
+export const setOrder = (text) => api.post(`/order`, { prompt: text });
 
 export default api;

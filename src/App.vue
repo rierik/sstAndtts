@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { fetchMenu } from './api';
+import { fetchMenu, setOrder } from './api';
 
 const isSpeeck = ref(false);
 const recognizedText = ref('햄버거 하나 주세요.');
@@ -9,6 +9,8 @@ const permissionRequested = ref(false);
 const recognitionRef = ref(null); // recognition 인스턴스를 저장할 ref
 
 const menu = ref([]);
+const orderAnswer = ref(''); // 음성 인식 결과를 저장할 ref
+const isLoading = ref(false);
 
 onMounted(() => {
   console.log(import.meta.env.VITE_BASE_URL);
@@ -18,6 +20,11 @@ onMounted(() => {
     menu.value = res.data;
   });
 });
+
+let silenceTimeout;
+
+let finalTranscript = ''; // 최종 텍스트를 누적
+let interimTranscript = ''; // 중간 텍스트를 누적
 
 const startRecognition = async () => {
   const isPermissionGranted = await requestMicrophonePermission();
@@ -34,19 +41,51 @@ const startRecognition = async () => {
   }
 
   const recognition = new SpeechRecognition();
+  console.log('recognition', recognition);
   recognitionRef.value = recognition; // 외부에서 접근 가능하게 저장
   recognition.lang = 'ko-KR';
-  recognition.interimResults = true;
+  recognition.continuous = true; // 음성 인식이 끊기지 않게 설정
+  recognition.interimResults = true; // 중간 결과도 계속해서 반환하도록 설정
 
   recognition.onresult = (event) => {
-    const transcript = event.results[0][0].transcript;
-    recognizedText.value = transcript;
-    console.log('인식된 텍스트:', transcript);
+    // 중간 결과 및 최종 결과를 처리
+    for (let i = event.resultIndex; i < event.results.length; ++i) {
+      const transcript = event.results[i][0].transcript;
+      //console.log('음성인식 말', transcript);
+
+      // 최종 결과 처리
+      if (event.results[i].isFinal) {
+        console.log('event.results[i].isFinal', event.results[i].isFinal);
+        finalTranscript += transcript + ' '; // 최종 결과에 추가
+        interimTranscript = ''; // 중간 결과는 초기화 (최종 결과가 나오면 중간 결과 지우기)
+      } else {
+        interimTranscript = transcript; // 중간 결과에 추가
+      }
+    }
+
+    console.log('붙여1', finalTranscript);
+    console.log('붙여2', interimTranscript);
+
+    // 최종 텍스트 + 현재 중간 텍스트를 이어서 표시
+    recognizedText.value = finalTranscript + interimTranscript;
+
+    resetSilenceTimer(); // 음성 감지 후 타이머 리셋
   };
 
-  recognition.onspeechend = () => {
-    console.log('🤫 음성 멈춤 감지됨');
-    startSilenceTimer(); // 음성 멈춤 후 타이머 작동
+  recognition.onaudiostart = () => {
+    console.log('음성 인식 시작');
+    resetSilenceTimer(); // 음성 인식 시작 시 타이머 초기화
+  };
+
+  let isRecognizing = false; // 음성 인식 중인지 확인하는 변수
+  let shouldRestart = false; // 인식 재시작 여부 제어용
+
+  recognition.onend = () => {
+    console.log('음성 인식 종료');
+    if (shouldRestart && isRecognizing) {
+      recognition.start(); // 음성이 끝난 후 다시 시작
+    }
+    isRecognizing = false;
   };
 
   recognition.onerror = (event) => {
@@ -56,8 +95,21 @@ const startRecognition = async () => {
     }
   };
 
+  // 음성 인식 시작 시 isRecognizing을 true로 설정
+  recognition.onstart = () => {
+    isRecognizing = true;
+  };
+
   recognition.start();
   console.log('음성 인식 시작됨...');
+
+  const resetSilenceTimer = () => {
+    clearTimeout(silenceTimeout);
+    silenceTimeout = setTimeout(() => {
+      recognition.stop();
+      console.log('⏹ 음성이 없어서 인식 중단됨.');
+    }, 5000); // 2초
+  };
 };
 
 const stopRecognition = () => {
@@ -67,18 +119,11 @@ const stopRecognition = () => {
   }
 };
 
-const startSilenceTimer = () => {
-  silenceTimer = setTimeout(() => {
-    console.log('⏱ 2초간 말이 없어서 중지합니다.');
-    stopRecognition();
-  }, 2000); // 2초
-};
-
 const requestMicrophonePermission = () => {
   return new Promise((resolve) => {
     if (navigator.mediaDevices) {
       navigator.mediaDevices
-        .getUserMedia({ audio: true })
+        .getUserMedia({ audio: true, video: true })
         .then(() => resolve(true))
         .catch((err) => {
           console.log('마이크 권한이 거부되었습니다:', err);
@@ -106,11 +151,17 @@ const categoryLabels = {
 const cart = ref([]);
 
 const addToCart = (item) => {
-  const exists = cart.value.find((i) => i.name === item.name);
-  if (exists) {
-    exists.qty++;
+  if (Array.isArray(item)) {
+    // item이 배열일 경우: 각각의 요소에 대해 addToCart 재귀 호출
+    item.forEach((it) => addToCart(it));
   } else {
-    cart.value.push({ ...item, qty: 1 });
+    // item이 객체일 경우
+    const exists = cart.value.find((i) => i.name === item.name);
+    if (exists) {
+      exists.qty++;
+    } else {
+      cart.value.push({ ...item, qty: 1 });
+    }
   }
 };
 
@@ -121,6 +172,22 @@ const clearCart = () => {
 const totalPrice = computed(() => {
   return cart.value.reduce((sum, item) => sum + item.price * item.qty, 0);
 });
+
+const sendVoiceOrder = () => {
+  isLoading.value = true;
+  setOrder(recognizedText.value).then((res) => {
+    console.log('주문 결과:', res);
+    orderAnswer.value = res.data;
+    recognizedText.value = '';
+    clearRecognizedText();
+    console.log(answerOrder());
+  });
+};
+
+const answerOrder = () => {
+  console.log(orderAnswer.value.order);
+  addToCart(orderAnswer.value.order);
+};
 </script>
 
 <template>
@@ -179,8 +246,8 @@ const totalPrice = computed(() => {
         <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 max-h-30 overflow-y-auto mb-4">
           <ul class="space-y-2 text-base">
             <li v-for="item in cart" :key="item.name" class="flex justify-between">
-              <span>{{ item.name }} x {{ item.qty }}</span>
-              <span>₩{{ (item.price * item.qty).toLocaleString() }}</span>
+              <span>{{ item.name }} x {{ item.quantity }}</span>
+              <span>₩{{ (item.price * item.quantity).toLocaleString() }}</span>
             </li>
           </ul>
         </div>
@@ -215,15 +282,20 @@ const totalPrice = computed(() => {
               />
             </svg>
           </button>
-          <p v-if="recognizedText">{{ recognizedText }}</p>
+          <div v-if="recognizedText">
+            <div v-if="isLoading" class="flex items-center justify-center">
+              <div class="w-8 h-8 border-4 border-gray-500 border-t-transparent rounded-full animate-spin [animation-duration:2s]"></div>
+            </div>
+            <p v-else>{{ recognizedText }}</p>
+          </div>
           <p v-else class="text-gray-400">음성을 인식해주세요.</p>
 
-          <button v-if="recognizedText" class="w-8 h-8 leading-0 bg-gray-200 p-1.5 rounded-full">
+          <button v-if="recognizedText" @click="sendVoiceOrder" class="w-8 h-8 leading-0 bg-gray-200 p-1.5 rounded-full">
             <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M2 10.5L7.5 16L18 5.5" stroke="black" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
           </button>
-          <button class="rounded-xl bg-green-700 text-white p-3 block m-0 mx-auto" v-else-if="!isSpeeck" @click="startRecognition">
+          <button v-else-if="!isSpeeck" @click="startRecognition" class="rounded-xl bg-green-700 text-white p-3 block m-0 mx-auto">
             <svg
               width="24"
               height="24"
