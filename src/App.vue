@@ -15,6 +15,8 @@ const isLoading = ref(false);
 
 const popupVisible = ref(false);
 
+const baseUrl = import.meta.env.VITE_BASE_URL;
+
 onMounted(() => {
   console.log(import.meta.env.VITE_BASE_URL);
 
@@ -226,7 +228,7 @@ const answerOrder = () => {
             :key="item.name"
             class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition cursor-pointer flex flex-col items-center text-center"
           >
-            <img :src="'http://192.168.100.47/' + item.photo" :alt="item.name" class="mb-2 w-24 object-cover" />
+            <img :src="baseUrl + '/' + item.photo" :alt="item.name" class="mb-2 w-24 object-cover" />
             <h2 class="text-base font-semibold">{{ item.name }}</h2>
             <p class="text-sm text-gray-500 mb-1">₩{{ item.price.toLocaleString() }}</p>
             <button @click.stop="addToCart(item)" class="bg-green-600 text-white text-sm px-4 py-1 rounded-full hover:bg-green-700 mt-1">선택</button>
