@@ -4,7 +4,7 @@ import { fetchMenu, setOrder } from './api';
 import ResPopup from './components/ResPopup.vue';
 
 const isSpeeck = ref(false);
-const recognizedText = ref('햄버거 하나 주세요.');
+const recognizedText = ref('햄버거 한 개 주세요');
 const permissionDenied = ref(false);
 const permissionRequested = ref(false);
 const recognitionRef = ref(null); // recognition 인스턴스를 저장할 ref
@@ -17,12 +17,18 @@ const popupVisible = ref(false);
 
 const baseUrl = import.meta.env.VITE_BASE_URL;
 
+const orderArr = ref([]);
+
 onMounted(() => {
   console.log(import.meta.env.VITE_BASE_URL);
 
   fetchMenu().then((res) => {
     console.log('메뉴:', res);
     menu.value = res.data;
+  });
+
+  setOrder({ prompt: '', order: [] }).then((res) => {
+    console.log('주문 초기화 결과:', res);
   });
 });
 
@@ -147,6 +153,8 @@ const requestMicrophonePermission = () => {
 
 const clearRecognizedText = () => {
   recognizedText.value = '';
+  finalTranscript = '';
+  interimTranscript = '';
 };
 
 const category = ref('햄버거');
@@ -182,14 +190,31 @@ const totalPrice = computed(() => {
 });
 
 const sendVoiceOrder = () => {
+  stopRecognition();
   isLoading.value = true;
-  setOrder(recognizedText.value).then((res) => {
+  console.log('recognizedText', recognizedText.value);
+  setOrder({ prompt: recognizedText.value, order: orderArr.value }).then((res) => {
     console.log('주문 결과:', res);
     orderAnswer.value = res.data;
-    recognizedText.value = '';
+    orderArr.value = res.data.order;
+
     clearRecognizedText();
-    console.log(answerOrder());
+
+    isLoading.value = false;
     popupVisible.value = true;
+
+    finalTranscript = '';
+    interimTranscript = '';
+
+    recognitionRef.value = null;
+
+    if (orderAnswer.value.action == 'payment') {
+      console.log('결제 요청 했니?');
+      setOrder({ prompt: '', order: [] }).then((res) => {
+        console.log('결제 결과:', res);
+        orderArr.value = [];
+      });
+    }
   });
 };
 
