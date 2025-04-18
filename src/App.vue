@@ -80,6 +80,11 @@ const startRecognition = async () => {
   recognition.onaudiostart = () => {
     console.log('음성 인식 시작');
     resetSilenceTimer(); // 음성 인식 시작 시 타이머 초기화
+    isSpeeck.value = true; // 음성 인식 시작 시 true로 설정
+
+    setTimeout(() => {
+      isSpeeck.value = false;
+    }, 1000);
   };
 
   let isRecognizing = false; // 음성 인식 중인지 확인하는 변수
@@ -322,8 +327,8 @@ const answerOrder = () => {
               ></path>
             </svg>
           </button>
-          <button v-else-if="isSpeeck && recognizedText.length" @click="stopRecognition">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="icon-lg">
+          <button v-else-if="isSpeeck" @click="stopRecognition" class="rounded-xl bg-green-700 text-white p-2 block m-0 mx-auto">
+            <svg width="24" height="24" viewBox="4 4 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="icon-lg">
               <rect x="7" y="7" width="10" height="10" rx="1.25" fill="currentColor"></rect>
             </svg>
           </button>
