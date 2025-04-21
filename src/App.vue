@@ -89,10 +89,6 @@ const startRecognition = async () => {
     console.log('음성 인식 시작');
     resetSilenceTimer(); // 음성 인식 시작 시 타이머 초기화
     isSpeeck.value = true; // 음성 인식 시작 시 true로 설정
-
-    setTimeout(() => {
-      isSpeeck.value = false;
-    }, 1000);
   };
 
   recognition.onerror = (event) => {
@@ -111,6 +107,7 @@ const startRecognition = async () => {
       recognition.stop();
       console.log('⏹ 음성이 없어서 인식 중단됨.');
       sendVoiceOrder(); // 음성이 없을 때 주문 전송
+      isSpeeck.value = false; //아이콘 변경
     }, 2500); // 2.5초
   };
 };
@@ -352,7 +349,7 @@ const answerOrder = () => {
     </div>
   </div>
 
-  <ResPopup :message="orderAnswer" v-model:visible="popupVisible" :restartSpeak="startRecognition" />
+  <ResPopup v-if="orderAnswer" :message="orderAnswer" v-model:visible="popupVisible" :restartSpeak="startRecognition" />
 </template>
 
 <style scoped>
