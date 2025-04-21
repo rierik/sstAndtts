@@ -30,6 +30,7 @@
 const props = defineProps({
   message: String,
   visible: Boolean,
+  restartSpeak: Function,
 });
 
 const emit = defineEmits(['update:visible']);
@@ -38,5 +39,6 @@ let timer = null;
 
 const close = () => {
   emit('update:visible', false);
+  props.restartSpeak();
 };
 </script>

@@ -4,7 +4,7 @@ import { fetchMenu, setOrder } from './api';
 import ResPopup from './components/ResPopup.vue';
 
 const isSpeeck = ref(false);
-const recognizedText = ref('햄버거 한 개 주세요');
+const recognizedText = ref('');
 const permissionDenied = ref(false);
 const permissionRequested = ref(false);
 const recognitionRef = ref(null); // recognition 인스턴스를 저장할 ref
@@ -30,6 +30,8 @@ onMounted(() => {
   setOrder({ prompt: '', order: [] }).then((res) => {
     console.log('주문 초기화 결과:', res);
   });
+
+  startRecognition();
 });
 
 let silenceTimeout;
@@ -93,27 +95,11 @@ const startRecognition = async () => {
     }, 1000);
   };
 
-  let isRecognizing = false; // 음성 인식 중인지 확인하는 변수
-  let shouldRestart = false; // 인식 재시작 여부 제어용
-
-  recognition.onend = () => {
-    console.log('음성 인식 종료');
-    if (shouldRestart && isRecognizing) {
-      recognition.start(); // 음성이 끝난 후 다시 시작
-    }
-    isRecognizing = false;
-  };
-
   recognition.onerror = (event) => {
     if (event.error === 'not-allowed' || event.error === 'service not allowed') {
       permissionDenied.value = true;
       console.log('마이크 권한이 거부되었습니다.');
     }
-  };
-
-  // 음성 인식 시작 시 isRecognizing을 true로 설정
-  recognition.onstart = () => {
-    isRecognizing = true;
   };
 
   recognition.start();
@@ -124,7 +110,8 @@ const startRecognition = async () => {
     silenceTimeout = setTimeout(() => {
       recognition.stop();
       console.log('⏹ 음성이 없어서 인식 중단됨.');
-    }, 5000); // 2초
+      sendVoiceOrder(); // 음성이 없을 때 주문 전송
+    }, 2500); // 2.5초
   };
 };
 
@@ -365,7 +352,7 @@ const answerOrder = () => {
     </div>
   </div>
 
-  <ResPopup :message="orderAnswer" v-model:visible="popupVisible" />
+  <ResPopup :message="orderAnswer" v-model:visible="popupVisible" :restartSpeak="startRecognition" />
 </template>
 
 <style scoped>
