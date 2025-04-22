@@ -13,7 +13,7 @@ const close = () => {
   emit('calculateCart');
 };
 
-onMounted(() => {
+watch(props.visible, () => {
   playAudio();
 });
 
