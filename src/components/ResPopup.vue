@@ -4,7 +4,6 @@ import { onMounted } from 'vue';
 const props = defineProps({
   message: String,
   visible: Boolean,
-  restartSpeak: Function,
 });
 
 const emit = defineEmits(['update:visible', 'calculateCart']);
@@ -12,7 +11,6 @@ const emit = defineEmits(['update:visible', 'calculateCart']);
 const close = () => {
   emit('update:visible', false);
   emit('calculateCart');
-  props.restartSpeak();
 };
 
 onMounted(() => {
