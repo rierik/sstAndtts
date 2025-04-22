@@ -150,6 +150,7 @@ const categoryLabels = {
 const cart = ref([]);
 
 const addToCart = (item) => {
+  console.log('exists', item);
   if (Array.isArray(item)) {
     // item이 배열일 경우: 각각의 요소에 대해 addToCart 재귀 호출
     item.forEach((it) => addToCart(it));
@@ -159,7 +160,7 @@ const addToCart = (item) => {
     if (exists) {
       exists.quantity++;
     } else {
-      cart.value.push({ ...item, quantity: 1 });
+      cart.value.push({ ...item });
     }
   }
 };
