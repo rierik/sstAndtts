@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 
 const showPopup = ref(true);
 const audioRef = ref(null);
@@ -12,12 +12,14 @@ const onAudioEnded = () => {
   showPopup.value = false;
 };
 
+const emit = defineEmits(['reStartVoiceRecognition']);
+
 onMounted(() => {
   audioRef.value?.addEventListener('ended', onAudioEnded);
 });
 
-onUnmounted(() => {
-  audioRef.value?.removeEventListener('ended', onAudioEnded);
+watch(showPopup, (newVal) => {
+  emit('reStartVoiceRecognition');
 });
 </script>
 

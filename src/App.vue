@@ -31,8 +31,6 @@ onMounted(() => {
   setOrder({ prompt: '', order: [] }).then((res) => {
     console.log('주문 초기화 결과:', res);
   });
-
-  startRecognition();
 });
 
 let silenceTimeout;
@@ -210,7 +208,7 @@ const answerOrder = () => {
 </script>
 
 <template>
-  <StartPopup />
+  <StartPopup @reStartVoiceRecognition="startRecognition" />
   <div class="w-full max-w-screen-xl mx-auto bg-white min-h-screen text-gray-800">
     <!-- Header Banner -->
     <div class="">
@@ -351,7 +349,7 @@ const answerOrder = () => {
     </div>
   </div>
 
-  <ResPopup v-if="orderAnswer" :message="orderAnswer" v-model:visible="popupVisible" :restartSpeak="startRecognition" @calculateCart="answerOrder" />
+  <ResPopup v-if="orderAnswer" :message="orderAnswer" v-model:visible="popupVisible" @calculateCart="answerOrder" />
 </template>
 
 <style scoped>
