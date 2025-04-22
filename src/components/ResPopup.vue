@@ -59,7 +59,7 @@ const playAudio = () => {
         <div class="text-sm text-gray-700 font-semibold">{{ item.name }}</div>
         <div class="text-sm text-gray-600">수량: {{ item.quantity }}</div>
         <div class="text-sm text-gray-600">
-          가격: <span class="font-bold text-gray-800">{{ item.price.toLocaleString() }}원</span>
+          가격: <span class="font-bold text-gray-800">{{ (item.price * item.quantity).toLocaleString() }}원</span>
         </div>
       </div>
 
