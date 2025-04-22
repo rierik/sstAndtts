@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { fetchMenu, setOrder } from './api';
 import ResPopup from './components/ResPopup.vue';
+import StartPopup from './components/startPopup.vue';
 
 const isSpeeck = ref(false);
 const recognizedText = ref('');
@@ -209,6 +210,7 @@ const answerOrder = () => {
 </script>
 
 <template>
+  <StartPopup />
   <div class="w-full max-w-screen-xl mx-auto bg-white min-h-screen text-gray-800">
     <!-- Header Banner -->
     <div class="">
