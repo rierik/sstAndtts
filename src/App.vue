@@ -5,7 +5,7 @@ import ResPopup from './components/ResPopup.vue';
 import StartPopup from './components/startPopup.vue';
 
 const isSpeeck = ref(false);
-const recognizedText = ref('');
+const recognizedText = ref('햄버거 한개 주세요');
 const permissionDenied = ref(false);
 const permissionRequested = ref(false);
 const recognitionRef = ref(null); // recognition 인스턴스를 저장할 ref
@@ -135,7 +135,7 @@ const requestMicrophonePermission = () => {
 };
 
 const clearRecognizedText = () => {
-  recognizedText.value = '';
+  recognizedText.value = '상하이 버거 1개와 콜라 2개 추가해주세요';
   finalTranscript = '';
   interimTranscript = '';
 };
@@ -150,19 +150,32 @@ const categoryLabels = {
 const cart = ref([]);
 
 const addToCart = (item) => {
-  console.log('exists', item);
+  console.log('raw item ::: ', item);
   if (Array.isArray(item)) {
     // item이 배열일 경우: 각각의 요소에 대해 addToCart 재귀 호출
+    cart.value = []; // 실제 서비스라면 이렇게 비우면 안됨
+
     item.forEach((it) => addToCart(it));
   } else {
-    // item이 객체일 경우
-    const exists = cart.value.find((i) => i.name === item.name);
-    if (exists) {
-      exists.quantity++;
-    } else {
-      cart.value.push({ ...item });
+    //직접 담은 경우
+    if (typeof item === 'object' && item !== null) {
+      const existingItem = cart.value.find((i) => i.id === item.id);
+      if (existingItem) {
+        existingItem.quantity++;
+      } else {
+        if (!item.quantity) {
+          item.quantity = 1; // 수량을 1로 초기화
+        }
+        cart.value.push(item);
+      }
+      return;
     }
+
+    // item이 객체일 경우 (orderAnswer에서 온 경우)
+    cart.value.push(item);
   }
+
+  console.log('CART ::: ', cart.value);
 };
 
 const clearCart = () => {
