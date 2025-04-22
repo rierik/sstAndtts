@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted } from 'vue';
+import { nextTick, onMounted, watch } from 'vue';
 
 const props = defineProps({
   message: String,
@@ -13,9 +13,18 @@ const close = () => {
   emit('calculateCart');
 };
 
-watch(props.visible, () => {
+onMounted(() => {
   playAudio();
 });
+
+watch(
+  () => props.visible,
+  (newVal) => {
+    if (newVal) {
+      playAudio();
+    }
+  },
+);
 
 const playAudio = () => {
   const buffer = props.message.voice.data;
