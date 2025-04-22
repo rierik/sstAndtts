@@ -5,7 +5,7 @@ import ResPopup from './components/ResPopup.vue';
 import StartPopup from './components/startPopup.vue';
 
 const isSpeeck = ref(false);
-const recognizedText = ref('햄버거 한개 주세요');
+const recognizedText = ref('');
 const permissionDenied = ref(false);
 const permissionRequested = ref(false);
 const recognitionRef = ref(null); // recognition 인스턴스를 저장할 ref
@@ -135,7 +135,7 @@ const requestMicrophonePermission = () => {
 };
 
 const clearRecognizedText = () => {
-  recognizedText.value = '상하이 버거 1개와 콜라 2개 추가해주세요';
+  recognizedText.value = '';
   finalTranscript = '';
   interimTranscript = '';
 };
