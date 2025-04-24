@@ -6,11 +6,12 @@ const props = defineProps({
   visible: Boolean,
 });
 
-const emit = defineEmits(['update:visible', 'calculateCart']);
+const emit = defineEmits(['update:visible', 'calculateCart', 'restartSpeeking']);
 
 const close = () => {
   emit('update:visible', false);
   emit('calculateCart');
+  emit('restartSpeeking');
 };
 
 onMounted(() => {

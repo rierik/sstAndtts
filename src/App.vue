@@ -363,7 +363,7 @@ const answerOrder = () => {
     </div>
   </div>
 
-  <ResPopup v-if="orderAnswer" :message="orderAnswer" v-model:visible="popupVisible" @calculateCart="answerOrder" />
+  <ResPopup v-if="orderAnswer" :message="orderAnswer" v-model:visible="popupVisible" @restartSpeeking="startRecognition" @calculateCart="answerOrder" />
 </template>
 
 <style scoped>
