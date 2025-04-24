@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL, // API 기본 경로
-  timeout: 10000, // 요청 제한 시간 (10초)
+  //timeout: 10000, // 요청 제한 시간 (10초)
   headers: {
     'Content-Type': 'application/json',
   },
